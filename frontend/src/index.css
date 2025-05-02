@@ -50,11 +50,9 @@
 }
 
 .home {
-    height: 100%;
-    align-items: center;
+    height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
 }
 
 .main-home-section {
