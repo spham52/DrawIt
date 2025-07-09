@@ -3,32 +3,25 @@ package com.drawit.demo.model;
 import com.drawit.demo.websocket.ChatMessage;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Game {
 
     UUID gameID;
-    List<Player> players;
+    private Map<UUID, Player> players = new ConcurrentHashMap<>();
     int maxRounds;
     boolean gameOver = false;
-    List<ChatMessage> chatHistory;
 
-    public Game(UUID gameID, List<Player> players, int maxRounds, List<ChatMessage> chatHistory) {
+    public Game(UUID gameID, Map<UUID, Player> players, int maxRounds, boolean gameOver) {
         this.gameID = gameID;
         this.players = players;
         this.maxRounds = maxRounds;
-        this.chatHistory = chatHistory;
+        this.gameOver = gameOver;
     }
 
     public Game() {}
-
-    public List<Player> getPlayers() {
-        return players;
-    }
-
-    public void setPlayers(List<Player> players) {
-        this.players = players;
-    }
 
     public int getMaxRounds() {
         return maxRounds;
@@ -36,6 +29,14 @@ public class Game {
 
     public void setMaxRounds(int maxRounds) {
         this.maxRounds = maxRounds;
+    }
+
+    public Map<UUID, Player> getPlayers() {
+        return players;
+    }
+
+    public void setPlayers(Map<UUID, Player> players) {
+        this.players = players;
     }
 
     public UUID getGameID() {
@@ -54,11 +55,13 @@ public class Game {
         this.gameOver = gameOver;
     }
 
-    public List<ChatMessage> getChatHistory() {
-        return chatHistory;
-    }
-
-    public void setChatHistory(List<ChatMessage> chatHistory) {
-        this.chatHistory = chatHistory;
+    @Override
+    public String toString() {
+        return "Game{" +
+                "gameID=" + gameID +
+                ", players=" + players +
+                ", maxRounds=" + maxRounds +
+                ", gameOver=" + gameOver +
+                '}';
     }
 }
