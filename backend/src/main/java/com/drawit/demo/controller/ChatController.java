@@ -25,6 +25,7 @@ public class ChatController {
         this.playerService = playerService;
     }
 
+    // construct response message to front-end, so it can display username by mapping playerID
     @MessageMapping("/chat/message")
     @SendTo("/topic/chat")
     public ChatMessageResponse connect(ChatMessage chatMessage) {
