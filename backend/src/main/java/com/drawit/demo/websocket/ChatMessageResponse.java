@@ -1,13 +1,13 @@
 package com.drawit.demo.websocket;
 
 public class ChatMessageResponse {
-    String playerID;
+    String username;
     String gameID;
     String message;
     String timestamp;
 
-    public ChatMessageResponse(String playerID, String gameID, String message, String timestamp) {
-        this.playerID = playerID;
+    public ChatMessageResponse(String username, String gameID, String message, String timestamp) {
+        this.username = username;
         this.gameID = gameID;
         this.message = message;
         this.timestamp = timestamp;
@@ -16,12 +16,12 @@ public class ChatMessageResponse {
     public ChatMessageResponse() {
     }
 
-    public String getPlayerID() {
-        return playerID;
+    public String getUsername() {
+        return username;
     }
 
-    public void setPlayerID(String playerID) {
-        this.playerID = playerID;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getGameID() {
