@@ -5,32 +5,64 @@ import Chatroom from "../Chatroom";
 export function WebSocketChat(props) {
     const stompClientRef = useRef(null);
     const [messages, setMessage] = useState([]);
+
+    const subscribeToGame = (gameID) => {
+        if (!stompClientRef.current) return;
+
+        stompClientRef.current.subscribe(`/topic/game/${gameID}`, (data) => {
+            const serverResponse = JSON.parse(data.body);
+            console.log(serverResponse);
+
+            setMessage((prevMessage) => {
+                const newMessages = [...prevMessage, serverResponse];
+                return newMessages.length > 30
+                    ? newMessages.slice(newMessages.length - 30)
+                    : newMessages;
+            })
+        })
+
+        stompClientRef.current.subscribe(`/topic/game/player/${sessionStorage.playerID}`, (data) => {
+            const serverResponse = JSON.parse(data.body);
+            console.log(serverResponse);
+        })
+    }
+
+    const subscribeToGameEvent = (gameID, playerID) => {
+        if (!stompClientRef.current) return;
+        stompClientRef.current.subscribe(`/topic/game/${gameID}/event/player/${playerID}`, (data) => {
+            const serverResponse = JSON.parse(data.body);
+            console.log(serverResponse);
+        })
+        stompClientRef.current.subscribe(`/topic/game/${gameID}/event`, (data) => {
+            const serverResponse = JSON.parse(data.body);
+            console.log(serverResponse);
+        })
+    }
+
     useEffect(() => {
         console.log(props.name);
         const stompClient = new Client({
-            brokerURL: "ws://localhost:8080/websocket"
+            brokerURL: "ws://localhost:8080/websocket",
+            debug: (msg) => console.log("[STOMP]", msg),
         });
 
         stompClient.onConnect = (frame) => {
             console.log(frame);
-            stompClient.subscribe('/topic/session', (data) => {
+            const sub = stompClient.subscribe('/topic/session', (data) => {
                 const serverResponse = JSON.parse(data.body);
                 console.log(serverResponse);
                 sessionStorage.setItem("sessionID", serverResponse.sessionID);
                 sessionStorage.setItem("gameID", serverResponse.gameID);
                 sessionStorage.setItem("playerID", serverResponse.playerID);
-            })
-
-            stompClient.subscribe('/topic/chat', (data) => {
-                const serverResponse = JSON.parse(data.body);
-                setMessage((prevMessages) => [...prevMessages, serverResponse]);
-                console.log(serverResponse);
+                subscribeToGame(serverResponse.gameID);
+                subscribeToGameEvent(serverResponse.gameID, serverResponse.playerID);
+                sub.unsubscribe();
             })
 
             stompClient.publish({
                 destination: "/app/connect",
                 body: JSON.stringify({
-                    'name': props.name,
+                    'username': props.name,
                     'inviteCode': '000'
                 })
             })
@@ -44,7 +76,7 @@ export function WebSocketChat(props) {
 
     const sendMessage = (message) => {
         stompClientRef.current.publish({
-            destination: "/app/chat/message",
+            destination: "/app/chat",
             body: JSON.stringify({
                 'playerID': sessionStorage.getItem("playerID"),
                 'gameID': sessionStorage.getItem("gameID"),

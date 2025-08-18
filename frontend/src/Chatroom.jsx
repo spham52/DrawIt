@@ -9,28 +9,32 @@ export default function Chatroom({messages, onSend}) {
             event.preventDefault();
             onSend(draft);
             setDraft("");
-            console.log(sessionStorage.getItem("playerID"))
-            console.log(sessionStorage.getItem("gameID"))
         }
     }
 
     return (
         <div className="game-page">
-            <div className="drawBoard"/>
-            <div className="chatroom">
-                <ul className="message-list">
-                    {messages.map((m, i) => (
-                        <li key={i}>
-                            <strong>{m.playerID}:</strong> {m.message}
-                        </li>
-                    ))}
-                </ul>
-                <input className="chatbox"
-                       type="text"
-                       placeholder="Enter your guess here"
-                       value={draft}
-                       onChange={e => setDraft(e.target.value)}
-                       onKeyDown={handleKeyDown}/>
+            <div className="game-status">
+                <div className="round"></div>
+            </div>
+            <div className="draw-chat">
+                <div className="drawBoard"/>
+                <div className="chatroom">
+                    <ul className="message-list">
+                        {messages.map((m, i) => (
+                            <li key={i}>
+                                <strong>{m.username}</strong>: {m.message}
+                            </li>
+                        ))}
+                    </ul>
+                    <input className="chatbox"
+                           type="text"
+                           placeholder="Enter your guess here"
+                           value={draft}
+                           maxLength="50"
+                           onChange={e => setDraft(e.target.value)}
+                           onKeyDown={handleKeyDown}/>
+                </div>
             </div>
         </div>
     )
