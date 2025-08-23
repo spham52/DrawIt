@@ -1,18 +1,17 @@
 package com.drawit.demo.model;
 
-import java.util.List;
 import java.util.UUID;
 
 public class Session {
 
     UUID sessionID;
-    Player player;
+    UUID playerID;
     UUID gameID;
     boolean isConnected;
 
-    public Session(UUID sessionID, Player player, UUID gameID, boolean isConnected) {
+    public Session(UUID sessionID, UUID playerID, UUID gameID, boolean isConnected) {
         this.sessionID = sessionID;
-        this.player = player;
+        this.playerID = playerID;
         this.gameID = gameID;
         this.isConnected = isConnected;
     }
@@ -28,12 +27,12 @@ public class Session {
         this.sessionID = sessionID;
     }
 
-    public Player getPlayer() {
-        return player;
+    public UUID getPlayerID() {
+        return playerID;
     }
 
-    public void setPlayer(Player player) {
-        this.player = player;
+    public void setPlayerID(UUID playerID) {
+        this.playerID = playerID;
     }
 
     public UUID getGameID() {
