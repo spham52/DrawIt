@@ -2,44 +2,67 @@ package com.drawit.demo.controller;
 
 import com.drawit.demo.model.Game;
 import com.drawit.demo.model.Player;
-import com.drawit.demo.service.ChatService;
-import com.drawit.demo.service.GameService;
-import com.drawit.demo.service.PlayerService;
+import com.drawit.demo.model.Session;
+import com.drawit.demo.service.*;
+import com.drawit.demo.util.GameRules;
 import com.drawit.demo.websocket.ChatMessage;
 import com.drawit.demo.websocket.ChatMessageResponse;
-import com.drawit.demo.websocket.UserMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import java.util.UUID;
 
 @Controller
 public class ChatController {
+    private final ChatService chatService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final GameRules gameRules = new GameRules();
     private final GameService gameService;
-    private final PlayerService playerService;
+    private final GameMessagingService gameMessagingService;
+    private final GameLogicService gameLogicService;
+    private final SessionService sessionService;
 
-    public ChatController(GameService gameService, PlayerService playerService) {
+    @Autowired
+    public ChatController(ChatService chatService, SimpMessagingTemplate messagingTemplate,
+                          GameService gameService, GameMessagingService gameMessagingService,
+                          GameLogicService gameLogicService, SessionService sessionService) {
+        this.chatService = chatService;
+        this.messagingTemplate = messagingTemplate;
         this.gameService = gameService;
-        this.playerService = playerService;
+        this.gameMessagingService = gameMessagingService;
+        this.gameLogicService = gameLogicService;
+        this.sessionService = sessionService;
     }
 
-    // construct response message to front-end, so it can display username by mapping playerID
-    @MessageMapping("/chat/message")
-    @SendTo("/topic/chat")
-    public ChatMessageResponse connect(ChatMessage chatMessage) {
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        UUID gameUUID = UUID.fromString(chatMessage.getGameID());
+    // user subscribes to app/topic/game/{GAMEID},
+    // then it will start sending ChatMessage to /topic/messages
+    // function sends back ChatMessageResponse to /topic/{gameID}
+    @MessageMapping("/chat")
+    public void sendMessage(ChatMessage chatMessage, SimpMessageHeaderAccessor accessor) {
+        // get session from connection ID
+        String socketID = accessor.getSessionId();
+        Session session = sessionService.getSession(socketID);
 
-        Game game = gameService.getGame(gameUUID);
-        Player player = playerService.findPlayer(chatMessage.getPlayerID(), game);
+        UUID gameID = session.getGameID();
 
-        return new ChatMessageResponse (
-                player.getUsername(),
-                game.getGameID().toString(),
-                chatMessage.getMessage(),
-                timestamp
-        );
+        Game game = gameService.getGame(gameID);
+        Player player = session.getPlayer();
+
+        // game hasn't started or player isn't allowed to message
+        if (!gameRules.hasGameStarted(game) || !gameRules.canPlayerSendMessage(player, game)) return;
+
+        // if message is correct guess
+        if (gameRules.isCorrectGuess(chatMessage, game)) {
+            gameLogicService.handleCorrectGuess(player, game);
+            gameMessagingService.sendCorrectGuessAnnouncement(player, game);
+            gameMessagingService.sendCurrentWord(player, game);
+            return;
+        }
+
+        ChatMessageResponse response = chatService.constructChatMessageResponse(chatMessage);
+        messagingTemplate.convertAndSend("/topic/game/" + chatMessage.getGameID(), response);
     }
 }
