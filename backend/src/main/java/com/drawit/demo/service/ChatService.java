@@ -1,8 +1,12 @@
 package com.drawit.demo.service;
 
+import com.drawit.demo.model.Game;
 import com.drawit.demo.websocket.ChatMessage;
+import com.drawit.demo.websocket.ChatMessageResponse;
+import org.springframework.stereotype.Service;
+
 
 public interface ChatService {
 
-    void sendMessage(ChatMessage message);
+    ChatMessageResponse constructChatMessageResponse(String websocketID, ChatMessage chatMessage);
 }

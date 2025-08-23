@@ -24,17 +24,19 @@ public class ChatController {
     private final GameMessagingService gameMessagingService;
     private final GameLogicService gameLogicService;
     private final SessionService sessionService;
+    private final PlayerService playerService;
 
     @Autowired
     public ChatController(ChatService chatService, SimpMessagingTemplate messagingTemplate,
                           GameService gameService, GameMessagingService gameMessagingService,
-                          GameLogicService gameLogicService, SessionService sessionService) {
+                          GameLogicService gameLogicService, SessionService sessionService, PlayerService playerService) {
         this.chatService = chatService;
         this.messagingTemplate = messagingTemplate;
         this.gameService = gameService;
         this.gameMessagingService = gameMessagingService;
         this.gameLogicService = gameLogicService;
         this.sessionService = sessionService;
+        this.playerService = playerService;
     }
 
     // user subscribes to app/topic/game/{GAMEID},
@@ -47,9 +49,10 @@ public class ChatController {
         Session session = sessionService.getSession(socketID);
 
         UUID gameID = session.getGameID();
+        UUID playerID = session.getPlayerID();
 
         Game game = gameService.getGame(gameID);
-        Player player = session.getPlayer();
+        Player player = game.getPlayers().get(playerID);
 
         // game hasn't started or player isn't allowed to message
         if (!gameRules.hasGameStarted(game) || !gameRules.canPlayerSendMessage(player, game)) return;
@@ -62,7 +65,7 @@ public class ChatController {
             return;
         }
 
-        ChatMessageResponse response = chatService.constructChatMessageResponse(chatMessage);
+        ChatMessageResponse response = chatService.constructChatMessageResponse(socketID, chatMessage);
         messagingTemplate.convertAndSend("/topic/game/" + chatMessage.getGameID(), response);
     }
 }
