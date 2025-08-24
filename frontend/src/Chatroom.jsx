@@ -1,7 +1,8 @@
 import React from "react"
 import './game.css'
+import DrawCanvas from "./Canvas/DrawCanvas";
 
-export default function Chatroom({messages, onSend}) {
+export default function Chatroom({messages, onSend, stompClientRef, gameID, playerID, drawerID}) {
     const [draft, setDraft] = React.useState("");
 
     const handleKeyDown = (event) => {
@@ -18,7 +19,8 @@ export default function Chatroom({messages, onSend}) {
                 <div className="round"></div>
             </div>
             <div className="draw-chat">
-                <div className="drawBoard"/>
+                <DrawCanvas stompClientRef={stompClientRef} playerID={playerID}
+                            gameID={gameID} drawerID={drawerID} />
                 <div className="chatroom">
                     <ul className="message-list">
                         {messages.map((m, i) => (

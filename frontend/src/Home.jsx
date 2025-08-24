@@ -6,13 +6,14 @@ import Chatroom from "./Chatroom";
 export default function Home() {
     const [name, setName] = React.useState("");
     const [isInGame, setInGame] = React.useState(false);
-    let nameInput = "";
 
     function handleSubmit(event) {
         event.preventDefault();
         const formEl = event.currentTarget;
         const formData = new FormData(formEl);
-        nameInput = formData.get("name");
+        const playerName = formData.get("name")
+        setName(playerName)
+        console.log(isInGame);
         setInGame(true);
     }
 
@@ -27,7 +28,7 @@ export default function Home() {
                     <input type="button" value="Create a private server" className="private-server-button"/>
                 </form>
             </section>}
-            {isInGame && <WebSocketChat name={nameInput}/>}
+            {isInGame && <WebSocketChat name={name}/>}
         </div>
     )
 }

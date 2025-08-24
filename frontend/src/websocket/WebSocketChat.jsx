@@ -5,8 +5,12 @@ import Chatroom from "../Chatroom";
 export function WebSocketChat(props) {
     const stompClientRef = useRef(null);
     const [messages, setMessage] = useState([]);
+    const [gameID, setGameID] = useState(null);
+    const [playerID, setPlayerID] = useState(null);
+    const [sessionID, setSessionID] = useState(null);
+    const [drawerID, setDrawerID] = useState(null);
 
-    const subscribeToGame = (gameID) => {
+    const subscribeToGame = (gameID, playerID) => {
         if (!stompClientRef.current) return;
 
         stompClientRef.current.subscribe(`/topic/game/${gameID}`, (data) => {
@@ -21,7 +25,7 @@ export function WebSocketChat(props) {
             })
         })
 
-        stompClientRef.current.subscribe(`/topic/game/player/${sessionStorage.playerID}`, (data) => {
+        stompClientRef.current.subscribe(`/topic/game/player/${playerID}`, (data) => {
             const serverResponse = JSON.parse(data.body);
             console.log(serverResponse);
         })
@@ -36,6 +40,10 @@ export function WebSocketChat(props) {
         stompClientRef.current.subscribe(`/topic/game/${gameID}/event`, (data) => {
             const serverResponse = JSON.parse(data.body);
             console.log(serverResponse);
+
+            if (serverResponse.eventID === 'ROUND_START') {
+                setDrawerID(serverResponse.drawerID);
+            }
         })
     }
 
@@ -51,10 +59,11 @@ export function WebSocketChat(props) {
             const sub = stompClient.subscribe('/topic/session', (data) => {
                 const serverResponse = JSON.parse(data.body);
                 console.log(serverResponse);
-                sessionStorage.setItem("sessionID", serverResponse.sessionID);
-                sessionStorage.setItem("gameID", serverResponse.gameID);
-                sessionStorage.setItem("playerID", serverResponse.playerID);
-                subscribeToGame(serverResponse.gameID);
+                setPlayerID(serverResponse.playerID);
+                setGameID(serverResponse.gameID);
+                setSessionID(serverResponse.sessionID);
+
+                subscribeToGame(serverResponse.gameID, serverResponse.playerID);
                 subscribeToGameEvent(serverResponse.gameID, serverResponse.playerID);
                 sub.unsubscribe();
             })
@@ -78,8 +87,8 @@ export function WebSocketChat(props) {
         stompClientRef.current.publish({
             destination: "/app/chat",
             body: JSON.stringify({
-                'playerID': sessionStorage.getItem("playerID"),
-                'gameID': sessionStorage.getItem("gameID"),
+                'playerID': playerID,
+                'gameID': gameID,
                 'message': message
             })
         })
@@ -87,7 +96,9 @@ export function WebSocketChat(props) {
 
     return (
         <Chatroom messages={messages}
-                  onSend={sendMessage}/>
+                  onSend={sendMessage} stompClientRef={stompClientRef} drawerID={drawerID} playerID={playerID}
+                  gameID={gameID}
+        />
     )
 
 }

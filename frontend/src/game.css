@@ -31,17 +31,41 @@
 }
 
 .game-page {
+    align-items: center;
     background-image: url("../public/images/pixel-landscape.jpg");
     justify-content: center;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     height: 100%;
     width: 100%;
 }
 
 ul.message-list li {
+    word-break: break-all;
+    font-family: sans-serif, Arial;
     font-size: 1rem;
-    font-family: sans-serif, sans-serif;
     list-style-type: none;
     color: black;
+}
+
+ul.message-list strong {
+    font-family: sans-serif, Arial;
+}
+
+.message-list {
+    padding-left: 0;
+}
+
+.game-status {
+    background-color: white;
+    width: 66%;
+    height: 7%;
+}
+
+.draw-chat {
+    justify-content: center;
+    display: flex;
+    flex-direction: row;
+    height: 80%;
+    width: 100%;
 }

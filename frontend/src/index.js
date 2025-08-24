@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
 import Home from "./Home";
+import DrawCanvas from "./Canvas/DrawCanvas";
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
