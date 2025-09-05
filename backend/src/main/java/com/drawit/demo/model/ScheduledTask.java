@@ -25,4 +25,12 @@ public class ScheduledTask {
     public boolean isDone() {
         return future.isDone();
     }
+
+    public ScheduledExecutorService getExecutor() {
+        return executor;
+    }
+
+    public ScheduledFuture<?> getFuture() {
+        return future;
+    }
 }
