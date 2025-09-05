@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 // gameService will retrieve the game
 // GameLogic will do whatever and then gameService will update the changes
@@ -16,7 +17,6 @@ public class GameLogicServiceImpl implements GameLogicService {
 
     private final WordService wordService;
     private final GameMessagingService gameMessagingService;
-    private final GameRules gameRules = new GameRules();
 
     @Autowired
     public GameLogicServiceImpl(WordService wordService,
@@ -26,34 +26,39 @@ public class GameLogicServiceImpl implements GameLogicService {
     }
 
     public void incrementRound(Game game) {
-        if (gameRules.isRoundOver(game.getCounter(), game.getPlayers().size())) {
-            game.setCounter(0);
+        if (GameRules.isRoundOver(game)) {
+            Map<UUID, Player> players = game.getPlayers();
+
+            for (Player p : players.values()) {
+                game.getPlayerTurns().add(p);
+            }
+
             game.setCurrRound(game.getCurrRound() + 1);
-            gameMessagingService.sendRoundOver(game);
+            gameMessagingService.sendRoundStart(game);
         }
     }
 
     public boolean isGameFinished(Game game) {
-        if (gameRules.isGameOver(game.getCurrRound())) {
+        if (GameRules.isGameOver(game.getCurrRound())) {
             gameMessagingService.sendGameOver(game);
             return true;
         }
         return false;
     }
 
-    public Player getNextPlayer(int i, Game game) {
-        List<Player> players = new ArrayList<>(game.getPlayers().values());
+    public Player getNextPlayer(Game game) {
+        Queue<Player> players = game.getPlayerTurns();
 
         if (players.isEmpty()) {
             System.out.println("No players in game");
             return null;
         }
-        int safeIndex = i % players.size();
-        return players.get(safeIndex);
+        return players.poll();
     }
 
-    public void nextPlayer(int i, Game game) {
-        Player player = getNextPlayer(i, game);
+    public void nextPlayer(Game game) {
+        Player player = getNextPlayer(game);
+        System.out.println(game.getPlayers());
         WordEntry word = wordService.retrieveRandomWord();
         game.setDrawer(player);
         game.getGuessedCorrectly().clear();
@@ -62,11 +67,9 @@ public class GameLogicServiceImpl implements GameLogicService {
         game.setCurrWord(word.getWord());
         System.out.println(word.getWord());
         gameMessagingService.sendCurrentWord(player, game);
-
     }
 
     public void handleCorrectGuess(Player player, Game game) {
-        gameMessagingService.sendCorrectGuessAnnouncement(player, game);
         game.getGuessedCorrectly().put(player.getId(), player);
     }
 }

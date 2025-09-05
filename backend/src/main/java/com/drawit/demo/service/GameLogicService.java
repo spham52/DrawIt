@@ -7,8 +7,8 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public interface GameLogicService {
-    Player getNextPlayer(int i, Game game);
-    void nextPlayer(int i, Game game);
+    Player getNextPlayer(Game game);
+    void nextPlayer(Game game);
     void handleCorrectGuess(Player player, Game game);
     void incrementRound(Game game);
     boolean isGameFinished(Game game);

@@ -1,22 +1,19 @@
 package com.drawit.demo.model;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Game {
 
     private UUID gameID;
-    private int maxRounds = 3;
+    private int maxRounds = 4;
     private String currWord;
     private Player drawer;
     private boolean gameStarted = false;
-    private int counter = 0;
-    private int currRound = 0;
+    private int currRound = 1;
     private Map<UUID, Player> players = new ConcurrentHashMap<>();
     private Map<UUID, Player> guessedCorrectly = new ConcurrentHashMap<>();
+    private Queue<Player> playerTurns = new LinkedList<>();
 
 
     public Game(UUID gameID, Map<UUID, Player> players, Map<UUID, Player> guessedCorrectly, int maxRounds,
@@ -46,14 +43,6 @@ public class Game {
 
     public void setPlayers(Map<UUID, Player> players) {
         this.players = players;
-    }
-
-    public int getCounter() {
-        return counter;
-    }
-
-    public void setCounter(int counter) {
-        this.counter = counter;
     }
 
     public int getCurrRound() {
@@ -94,6 +83,14 @@ public class Game {
 
     public void setCurrWord(String currWord) {
         this.currWord = currWord;
+    }
+
+    public Queue<Player> getPlayerTurns() {
+        return playerTurns;
+    }
+
+    public void setPlayerTurns(Queue<Player> playerTurns) {
+        this.playerTurns = playerTurns;
     }
 
     @Override
