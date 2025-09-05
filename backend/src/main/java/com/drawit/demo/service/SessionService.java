@@ -12,13 +12,15 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class SessionService {
     private final GameService gameService;
+    private final GameMessagingService messagingService;
 
     // maps websocket connection ID to session
-    private ConcurrentHashMap<String, Session> sessions;
+    private final ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<>();
 
     @Autowired
-    SessionService(GameService gameService) {
+    SessionService(GameService gameService, GameMessagingService messagingService) {
         this.gameService = gameService;
+        this.messagingService = messagingService;
     }
 
     public Session createSession(Player player, String socketID) {
@@ -33,6 +35,12 @@ public class SessionService {
         }
 
         gameService.addPlayer(player, gameID);
+        Game game = gameService.getGame(gameID);
+
+        // if game has started and player has joined, give player the drawer's ID
+        if (game.isGameStarted()) {
+            messagingService.sendPlayerJoined(game.getDrawer(), game);
+        }
 
         Session session = new Session();
         session.setSessionID(uuid);
