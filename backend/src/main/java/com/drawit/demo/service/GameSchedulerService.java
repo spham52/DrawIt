@@ -8,4 +8,8 @@ public interface GameSchedulerService {
     void createTask(UUID gameID);
 
     void stopGame(Game game);
+
+    Runnable buildTask(Game game);
+
+    void rescheduleTask(Game game);
 }

@@ -2,6 +2,7 @@ package com.drawit.demo.service;
 
 import com.drawit.demo.model.Game;
 import com.drawit.demo.model.ScheduledTask;
+import com.drawit.demo.util.GameRules;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.drawit.demo.model.ScheduledTask;
@@ -15,34 +16,23 @@ import java.util.concurrent.*;
 public class GameSchedulerServiceImpl implements GameSchedulerService {
     private final Map<UUID, ScheduledTask> gameScheduler = new ConcurrentHashMap<>();
     private final GameService gameService;
-    private final GameMessagingService gameMessagingService;
     private final GameLogicService gameLogicService;
 
     @Autowired
-    public GameSchedulerServiceImpl(GameService gameService, GameMessagingService gameMessagingService,
+    public GameSchedulerServiceImpl(GameService gameService,
                                     GameLogicService gameLogicService) {
         this.gameService = gameService;
-        this.gameMessagingService = gameMessagingService;
         this.gameLogicService = gameLogicService;
     }
 
     public void createTask(UUID gameID) {
-        if (gameScheduler.containsKey(gameID)) {
-            return;
-        }
         Game game = gameService.getGame(gameID);
 
-        Runnable task = () -> {
-            game.setGameStarted(true);
-            gameMessagingService.sendRoundStart(game);
-            gameLogicService.incrementRound(game);
+        if (gameScheduler.containsKey(gameID) || game.getPlayers().size() < 2) {
+            return;
+        }
 
-            if (gameLogicService.isGameFinished(game)) {
-                stopGame(game);
-            }
-            gameLogicService.nextPlayer(game.getCounter(), game);
-            game.setCounter(game.getCounter() + 1);
-        };
+        Runnable task = buildTask(game);
 
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         ScheduledFuture<?> future = executor.scheduleAtFixedRate(task, 0, 120, TimeUnit.SECONDS);
@@ -56,5 +46,32 @@ public class GameSchedulerServiceImpl implements GameSchedulerService {
         if (task != null) {
             task.cancel();
         }
+        if (game.getPlayers().size() > 2) {
+            Game newGame = gameService.restartGame(game);
+            createTask(newGame.getGameID());
+        }
+    }
+
+    public void rescheduleTask(Game game) {
+        ScheduledTask oldTask = gameScheduler.get(game.getGameID());
+        if (oldTask != null) {
+            oldTask.cancel();
+            Runnable task = buildTask(game);
+            ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+            ScheduledFuture<?> future = executor.scheduleAtFixedRate(task, 0, 120, TimeUnit.SECONDS);
+            ScheduledTask scheduledTask = new ScheduledTask(executor, future);
+            gameScheduler.put(game.getGameID(), scheduledTask);
+        }
+    }
+
+    public Runnable buildTask(Game game) {
+        return () -> {
+            game.setGameStarted(true);
+            gameLogicService.incrementRound(game);
+            gameLogicService.nextPlayer(game);
+            if (gameLogicService.isGameFinished(game)) {
+                stopGame(game);
+            }
+        };
     }
 }
