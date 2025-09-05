@@ -1,6 +1,7 @@
 import {Client} from '@stomp/stompjs'
 import {useEffect, useRef, useState} from "react";
 import Chatroom from "../Chatroom";
+import convertAnnouncement from "../convertAnnouncement";
 
 export function WebSocketChat(props) {
     const stompClientRef = useRef(null);
@@ -17,12 +18,7 @@ export function WebSocketChat(props) {
             const serverResponse = JSON.parse(data.body);
             console.log(serverResponse);
 
-            setMessage((prevMessage) => {
-                const newMessages = [...prevMessage, serverResponse];
-                return newMessages.length > 30
-                    ? newMessages.slice(newMessages.length - 30)
-                    : newMessages;
-            })
+            messageFunc(serverResponse, "chat");
         })
 
         stompClientRef.current.subscribe(`/topic/game/player/${playerID}`, (data) => {
@@ -31,11 +27,23 @@ export function WebSocketChat(props) {
         })
     }
 
+    const messageFunc = (serverResponse, type) => {
+        const message = type === "chat" ?
+            { type: "chat", username: serverResponse.username, message: serverResponse.message }
+            : {type: "announcement", message: convertAnnouncement(serverResponse)};
+        setMessage((prevMessage) => {
+            const newMessages = [...prevMessage, message];
+            return newMessages.length > 30
+                ? newMessages.slice(newMessages.length - 30)
+                : newMessages;
+        });
+    }
+
     const subscribeToGameEvent = (gameID, playerID) => {
         if (!stompClientRef.current) return;
         stompClientRef.current.subscribe(`/topic/game/${gameID}/event/player/${playerID}`, (data) => {
             const serverResponse = JSON.parse(data.body);
-            console.log(serverResponse);
+            messageFunc(serverResponse, "announcement");
         })
         stompClientRef.current.subscribe(`/topic/game/${gameID}/event`, (data) => {
             const serverResponse = JSON.parse(data.body);
@@ -44,6 +52,8 @@ export function WebSocketChat(props) {
             if (serverResponse.eventID === 'ROUND_START') {
                 setDrawerID(serverResponse.drawerID);
             }
+
+            messageFunc(serverResponse, "announcement");
         })
     }
 
