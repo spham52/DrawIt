@@ -20,12 +20,20 @@ export default function Chatroom({messages, onSend, stompClientRef, gameID, play
             </div>
             <div className="draw-chat">
                 <DrawCanvas stompClientRef={stompClientRef} playerID={playerID}
-                            gameID={gameID} drawerID={drawerID} />
+                            gameID={gameID} drawerID={drawerID}/>
                 <div className="chatroom">
                     <ul className="message-list">
                         {messages.map((m, i) => (
                             <li key={i}>
-                                <strong>{m.username}</strong>: {m.message}
+                                {m.type === "chat" ? (
+                                    <>
+                                        <strong>{m.username}:</strong> {m.message}
+                                    </>
+                                ) : (
+                                    <>
+                                        {m.message}
+                                    </>
+                                )}
                             </li>
                         ))}
                     </ul>
