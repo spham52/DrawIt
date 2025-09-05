@@ -8,10 +8,22 @@ public class GameEventMessage {
 
     EventMessageType eventID;
     String message;
+    UUID drawerID;
 
     public GameEventMessage(EventMessageType eventID, String message) {
         this.eventID = eventID;
         this.message = message;
+    }
+
+    public GameEventMessage(EventMessageType eventID, String message, UUID drawerID) {
+        this.eventID = eventID;
+        this.message = message;
+        this.drawerID = drawerID;
+    }
+
+    public GameEventMessage(EventMessageType eventID, UUID drawerID) {
+        this.eventID = eventID;
+        this.drawerID = drawerID;
     }
 
     public GameEventMessage(EventMessageType eventID) {
@@ -32,6 +44,14 @@ public class GameEventMessage {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public UUID getDrawerID() {
+        return drawerID;
+    }
+
+    public void setDrawerID(UUID drawerID) {
+        this.drawerID = drawerID;
     }
 
     @Override
