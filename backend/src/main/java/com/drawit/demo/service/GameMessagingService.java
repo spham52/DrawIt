@@ -15,4 +15,6 @@ public interface GameMessagingService {
     void sendCorrectGuessAnnouncement(Player player, Game game);
 
     void sendGameOver(Game game);
+
+    public void sendPlayerJoined(Player drawer, Game game);
 }

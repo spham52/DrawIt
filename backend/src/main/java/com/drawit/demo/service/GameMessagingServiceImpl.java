@@ -20,7 +20,8 @@ public class GameMessagingServiceImpl implements GameMessagingService {
 
     // send drawer's word
     public void sendCurrentWord(Player player, Game game) {
-        GameEventMessage gameEventMessage = new GameEventMessage(EventMessageType.CURRENT_WORD, game.getCurrWord());
+        GameEventMessage gameEventMessage = new GameEventMessage(EventMessageType.CURRENT_WORD, game.getCurrWord(),
+                game.getDrawer().getId());
         messagingTemplate.convertAndSend("/topic/game/" + game.getGameID() + "/event/player/" + player.getId()
                 , gameEventMessage);
     }
@@ -28,7 +29,7 @@ public class GameMessagingServiceImpl implements GameMessagingService {
     // send when round starts
     public void sendRoundStart(Game game) {
         GameEventMessage gameEventMessage = new GameEventMessage(EventMessageType.ROUND_START,
-                String.valueOf(game.getCurrRound()));
+                String.valueOf(game.getCurrRound()), game.getDrawer().getId());
         messagingTemplate.convertAndSend("/topic/game/" + game.getGameID() + "/event", gameEventMessage);
     }
 
@@ -45,6 +46,12 @@ public class GameMessagingServiceImpl implements GameMessagingService {
 
     public void sendGameOver(Game game) {
         GameEventMessage gameEventMessage = new GameEventMessage(EventMessageType.GAME_OVER);
+        messagingTemplate.convertAndSend("/topic/game/" + game.getGameID() + "/event", gameEventMessage);
+    }
+
+    // send to newly joined player, who the current drawer is
+    public void sendPlayerJoined(Player drawer, Game game) {
+        GameEventMessage gameEventMessage = new GameEventMessage(EventMessageType.PLAYER_JOINED, drawer.getUsername(),drawer.getId());
         messagingTemplate.convertAndSend("/topic/game/" + game.getGameID() + "/event", gameEventMessage);
     }
 }
