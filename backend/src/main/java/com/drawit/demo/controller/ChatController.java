@@ -19,24 +19,24 @@ import java.util.UUID;
 public class ChatController {
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;
-    private final GameRules gameRules = new GameRules();
+    private GameSchedulerService gameSchedulerService;
     private final GameService gameService;
     private final GameMessagingService gameMessagingService;
     private final GameLogicService gameLogicService;
     private final SessionService sessionService;
-    private final PlayerService playerService;
 
     @Autowired
     public ChatController(ChatService chatService, SimpMessagingTemplate messagingTemplate,
                           GameService gameService, GameMessagingService gameMessagingService,
-                          GameLogicService gameLogicService, SessionService sessionService, PlayerService playerService) {
+                          GameLogicService gameLogicService, SessionService sessionService,
+                          GameSchedulerService gameSchedulerService) {
         this.chatService = chatService;
         this.messagingTemplate = messagingTemplate;
         this.gameService = gameService;
         this.gameMessagingService = gameMessagingService;
         this.gameLogicService = gameLogicService;
         this.sessionService = sessionService;
-        this.playerService = playerService;
+        this.gameSchedulerService = gameSchedulerService;
     }
 
     // user subscribes to app/topic/game/{GAMEID},
@@ -55,13 +55,17 @@ public class ChatController {
         Player player = game.getPlayers().get(playerID);
 
         // game hasn't started or player isn't allowed to message
-        if (!gameRules.hasGameStarted(game) || !gameRules.canPlayerSendMessage(player, game)) return;
+        if (!GameRules.canPlayerSendMessage(player, game)) return;
 
         // if message is correct guess
-        if (gameRules.isCorrectGuess(chatMessage, game)) {
+        if (GameRules.isCorrectGuess(chatMessage, game)) {
             gameLogicService.handleCorrectGuess(player, game);
             gameMessagingService.sendCorrectGuessAnnouncement(player, game);
-            gameMessagingService.sendCurrentWord(player, game);
+
+            if (GameRules.allPlayersGuessedCorrectly(game)) {
+                gameSchedulerService.rescheduleTask(game);
+            }
+
             return;
         }
 
