@@ -29,10 +29,29 @@ public class GameServiceImpl implements GameService {
     public void addPlayer(Player player, UUID gameID) {
         Game game = getGame(gameID);
         game.getPlayers().put(player.getId(), player);
+        game.getPlayerTurns().add(player);
     }
 
     @Override
     public void stopGame(UUID gameID) {
 
+    }
+
+    @Override
+    public Game restartGame(Game oldGame) {
+        UUID newId = UUID.randomUUID();
+        Game newGame = new Game();
+        newGame.setGameID(newId);
+
+        for (Player p : oldGame.getPlayers().values()) {
+            addPlayer(p, newGame.getGameID());
+        }
+
+        // reset state
+        newGame.setCurrRound(1);
+        newGame.setGameStarted(false);
+
+        games.put(newId, newGame);
+        return newGame;
     }
 }
