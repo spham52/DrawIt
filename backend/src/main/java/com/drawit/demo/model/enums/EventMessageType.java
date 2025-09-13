@@ -9,4 +9,5 @@ public enum EventMessageType {
     ROUND_END,
     CORRECT_GUESS_ANNOUNCEMENT,
     GAME_OVER,
+    CURRENT_DRAWER,
 }
