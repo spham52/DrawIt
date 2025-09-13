@@ -10,7 +10,7 @@ public class Game {
     private String currWord;
     private Player drawer;
     private boolean gameStarted = false;
-    private int currRound = 1;
+    private int currRound = 0;
     private Map<UUID, Player> players = new ConcurrentHashMap<>();
     private Map<UUID, Player> guessedCorrectly = new ConcurrentHashMap<>();
     private Queue<Player> playerTurns = new LinkedList<>();

@@ -33,7 +33,6 @@ public class CanvasController {
     public void sendCanvas(@DestinationVariable String id,
                            Coordinates coords,
                            SimpMessageHeaderAccessor accessor) {
-
         String websocketID = accessor.getSessionId();
         Session session = sessionService.getSession(websocketID);
 

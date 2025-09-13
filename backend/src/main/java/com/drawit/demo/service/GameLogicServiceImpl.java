@@ -3,6 +3,7 @@ package com.drawit.demo.service;
 import com.drawit.demo.dto.WordEntry;
 import com.drawit.demo.model.Game;
 import com.drawit.demo.model.Player;
+import com.drawit.demo.model.enums.PlayerLeftOutcome;
 import com.drawit.demo.util.GameRules;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,17 @@ public class GameLogicServiceImpl implements GameLogicService {
     }
 
     public void incrementRound(Game game) {
+        if (game.getCurrRound() == 0) {
+
+            if (game.getPlayerTurns().isEmpty()) {
+                for (Player p : game.getPlayers().values()) {
+                    game.getPlayerTurns().add(p);
+                }
+            }
+            game.setCurrRound(1);
+            gameMessagingService.sendRoundStart(game);
+        }
+
         if (GameRules.isRoundOver(game)) {
             Map<UUID, Player> players = game.getPlayers();
 
@@ -67,9 +79,25 @@ public class GameLogicServiceImpl implements GameLogicService {
         game.setCurrWord(word.getWord());
         System.out.println(word.getWord());
         gameMessagingService.sendCurrentWord(player, game);
+        gameMessagingService.sendCurrentDrawer(player, game);
     }
 
     public void handleCorrectGuess(Player player, Game game) {
         game.getGuessedCorrectly().put(player.getId(), player);
+    }
+
+    public PlayerLeftOutcome handlePlayerLeft(Player player, Game game) {
+        boolean wasDrawer = game.getDrawer() != null && game.getDrawer().getId().equals(player.getId());
+
+        if (game.getPlayers().size() < 2) {
+            return PlayerLeftOutcome.STOP_SCHEDULER;
+        }
+
+        if (wasDrawer) {
+            nextPlayer(game);
+            return PlayerLeftOutcome.ADVANCE_TURN;
+        }
+
+        return PlayerLeftOutcome.NO_OP;
     }
 }
