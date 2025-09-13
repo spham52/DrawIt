@@ -2,12 +2,10 @@ package com.drawit.demo.service;
 
 import com.drawit.demo.model.Game;
 import com.drawit.demo.model.ScheduledTask;
-import com.drawit.demo.util.GameRules;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.drawit.demo.model.ScheduledTask;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -35,7 +33,7 @@ public class GameSchedulerServiceImpl implements GameSchedulerService {
         Runnable task = buildTask(game);
 
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        ScheduledFuture<?> future = executor.scheduleAtFixedRate(task, 0, 120, TimeUnit.SECONDS);
+        ScheduledFuture<?> future = executor.scheduleAtFixedRate(task, 1, 120, TimeUnit.SECONDS);
         ScheduledTask scheduledTask = new ScheduledTask(executor, future);
         gameScheduler.put(gameID, scheduledTask);
     }
@@ -58,7 +56,7 @@ public class GameSchedulerServiceImpl implements GameSchedulerService {
             oldTask.cancel();
             Runnable task = buildTask(game);
             ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-            ScheduledFuture<?> future = executor.scheduleAtFixedRate(task, 0, 120, TimeUnit.SECONDS);
+            ScheduledFuture<?> future = executor.scheduleAtFixedRate(task, 1, 120, TimeUnit.SECONDS);
             ScheduledTask scheduledTask = new ScheduledTask(executor, future);
             gameScheduler.put(game.getGameID(), scheduledTask);
         }
@@ -66,9 +64,14 @@ public class GameSchedulerServiceImpl implements GameSchedulerService {
 
     public Runnable buildTask(Game game) {
         return () -> {
-            game.setGameStarted(true);
             gameLogicService.incrementRound(game);
+
             gameLogicService.nextPlayer(game);
+
+            if (!game.isGameStarted() && game.getDrawer() != null) {
+                game.setGameStarted(true);
+            }
+
             if (gameLogicService.isGameFinished(game)) {
                 stopGame(game);
             }
