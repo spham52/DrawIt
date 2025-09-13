@@ -59,11 +59,11 @@ export default function DrawCanvas({stompClientRef, drawerID, playerID, gameID})
 
         const drawFunc = (event) => {
             if (!userDrawing) return;
-
             const rect = canvas.getBoundingClientRect();
             const x = (event.clientX - rect.left) * dpr;
             const y = (event.clientY - rect.top) * dpr;
-
+            console.log("Player ID: " + playerID);
+            console.log("Drawer ID: " + drawerID);
             if (playerID === drawerID) {
                 // publish user's draw coords to websocket channel 'game/draw'
                 sendDrawEvent({

@@ -10,6 +10,8 @@ export function WebSocketChat(props) {
     const [playerID, setPlayerID] = useState(null);
     const [sessionID, setSessionID] = useState(null);
     const [drawerID, setDrawerID] = useState(null);
+    const [drawerName, setDrawerName] = useState(null);
+    const [currentWord, setCurrentWord] = useState(null);
 
     const subscribeToGame = (gameID, playerID) => {
         if (!stompClientRef.current) return;
@@ -44,13 +46,22 @@ export function WebSocketChat(props) {
         stompClientRef.current.subscribe(`/topic/game/${gameID}/event/player/${playerID}`, (data) => {
             const serverResponse = JSON.parse(data.body);
             messageFunc(serverResponse, "announcement");
+
+            if (serverResponse.eventID === 'CURRENT_WORD') {
+                setCurrentWord(serverResponse.message);
+            }
         })
         stompClientRef.current.subscribe(`/topic/game/${gameID}/event`, (data) => {
             const serverResponse = JSON.parse(data.body);
             console.log(serverResponse);
 
-            if (serverResponse.eventID === 'ROUND_START') {
+            if (serverResponse.eventID === 'CURRENT_DRAWER') {
                 setDrawerID(serverResponse.drawerID);
+                setDrawerName(serverResponse.message);
+            }
+
+            if (drawerID !== playerID) {
+                setCurrentWord("");
             }
 
             messageFunc(serverResponse, "announcement");
@@ -107,7 +118,7 @@ export function WebSocketChat(props) {
     return (
         <Chatroom messages={messages}
                   onSend={sendMessage} stompClientRef={stompClientRef} drawerID={drawerID} playerID={playerID}
-                  gameID={gameID}
+                  gameID={gameID} drawerName={drawerName} currentWord={currentWord}
         />
     )
 

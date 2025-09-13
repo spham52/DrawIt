@@ -16,6 +16,8 @@ export default function convertAnnouncement(props) {
         break;
         case "GAME_OVER": message = "Game is over!";
         break;
+        case "CURRENT_DRAWER": message = "The current drawer is: " + props.message;
+        break;
     }
     return message;
 }

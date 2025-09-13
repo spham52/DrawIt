@@ -2,7 +2,8 @@ import React from "react"
 import './game.css'
 import DrawCanvas from "./Canvas/DrawCanvas";
 
-export default function Chatroom({messages, onSend, stompClientRef, gameID, playerID, drawerID}) {
+export default function Chatroom({messages, onSend, stompClientRef, gameID, playerID, drawerID, drawerName,
+                                 currentWord}) {
     const [draft, setDraft] = React.useState("");
 
     const handleKeyDown = (event) => {
@@ -16,7 +17,8 @@ export default function Chatroom({messages, onSend, stompClientRef, gameID, play
     return (
         <div className="game-page">
             <div className="game-status">
-                <div className="round"></div>
+                <p>Current Drawer: {drawerName}</p>
+                <p>Current Word: {currentWord}</p>
             </div>
             <div className="draw-chat">
                 <DrawCanvas stompClientRef={stompClientRef} playerID={playerID}
