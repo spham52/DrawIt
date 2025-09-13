@@ -35,7 +35,7 @@ public class WordServiceImpl implements WordService {
     @Override
     public WordEntry retrieveRandomWord() {
         Random random = new Random();
-        int max = 15, min = 2;
+        int max = 7, min = 2;
 
         int length = random.nextInt(max - min + 1) + min;
 
