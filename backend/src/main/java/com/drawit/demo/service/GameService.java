@@ -16,4 +16,6 @@ public interface GameService {
     void stopGame(UUID gameID);
 
     Game restartGame(Game game);
+
+    void removePlayer(Player player, Game game);
 }

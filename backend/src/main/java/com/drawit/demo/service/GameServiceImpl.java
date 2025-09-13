@@ -44,14 +44,24 @@ public class GameServiceImpl implements GameService {
         newGame.setGameID(newId);
 
         for (Player p : oldGame.getPlayers().values()) {
-            addPlayer(p, newGame.getGameID());
+            newGame.getPlayers().put(p.getId(), p);
+            newGame.getPlayerTurns().add(p);
         }
 
-        // reset state
+
         newGame.setCurrRound(1);
         newGame.setGameStarted(false);
+        newGame.setDrawer(null);
 
         games.put(newId, newGame);
         return newGame;
     }
+
+    @Override
+    public void removePlayer(Player player, Game game) {
+        game.getPlayers().remove(player.getId());
+        game.getPlayerTurns().remove(player);
+    }
+
+
 }

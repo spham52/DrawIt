@@ -16,11 +16,15 @@ public class SessionService {
 
     // maps websocket connection ID to session
     private final ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<>();
+    private final GameLogicService gameLogicService;
+    private final GameSchedulerService gameSchedulerService;
 
     @Autowired
-    SessionService(GameService gameService, GameMessagingService messagingService) {
+    SessionService(GameService gameService, GameMessagingService messagingService, GameLogicService gameLogicService, GameSchedulerService gameSchedulerService) {
         this.gameService = gameService;
         this.messagingService = messagingService;
+        this.gameLogicService = gameLogicService;
+        this.gameSchedulerService = gameSchedulerService;
     }
 
     public Session createSession(Player player, String socketID) {
@@ -56,6 +60,21 @@ public class SessionService {
     }
 
     public void removeSession(String socketID) {
+        Session session = getSession(socketID);
         sessions.remove(socketID);
+        Game game = gameService.getGame(session.getGameID());
+        Player player = game.getPlayers().get(session.getPlayerID());
+        gameService.removePlayer(player, game);
+
+        switch(gameLogicService.handlePlayerLeft(player, game)) {
+            case NO_OP:
+                break;
+            case ADVANCE_TURN:
+                gameSchedulerService.rescheduleTask(game);
+                break;
+            case STOP_SCHEDULER:
+                gameSchedulerService.stopGame(game);
+                break;
+        }
     }
 }
