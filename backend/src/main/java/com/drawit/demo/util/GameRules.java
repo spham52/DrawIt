@@ -21,6 +21,8 @@ public class GameRules {
     public static boolean canPlayerSendMessage(Player player, Game game) {
         if (!game.isGameStarted()) return true;
 
+        if (game.getDrawer() == null) return true;
+
         return game.getDrawer().getId() != player.getId() && !game.getGuessedCorrectly().containsKey(player.getId());
     }
 
