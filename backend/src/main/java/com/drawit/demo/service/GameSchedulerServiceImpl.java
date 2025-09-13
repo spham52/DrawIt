@@ -4,6 +4,7 @@ import com.drawit.demo.model.Game;
 import com.drawit.demo.model.ScheduledTask;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -26,16 +27,16 @@ public class GameSchedulerServiceImpl implements GameSchedulerService {
     public void createTask(UUID gameID) {
         Game game = gameService.getGame(gameID);
 
-        if (gameScheduler.containsKey(gameID) || game.getPlayers().size() < 2) {
-            return;
+        if (game == null) return;
+
+        if (game.getPlayers().size() >= 2) {
+            synchronized (gameScheduler) {
+                Runnable task = buildTask(game);
+                ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+                ScheduledFuture<?> fut = exec.scheduleAtFixedRate(task, 1, 120, TimeUnit.SECONDS);
+                gameScheduler.put(gameID, new ScheduledTask(exec, fut));
+            }
         }
-
-        Runnable task = buildTask(game);
-
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        ScheduledFuture<?> future = executor.scheduleAtFixedRate(task, 1, 120, TimeUnit.SECONDS);
-        ScheduledTask scheduledTask = new ScheduledTask(executor, future);
-        gameScheduler.put(gameID, scheduledTask);
     }
 
     public void stopGame(Game game) {

@@ -2,6 +2,7 @@ package com.drawit.demo.model;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Game {
 
@@ -13,7 +14,7 @@ public class Game {
     private int currRound = 0;
     private Map<UUID, Player> players = new ConcurrentHashMap<>();
     private Map<UUID, Player> guessedCorrectly = new ConcurrentHashMap<>();
-    private Queue<Player> playerTurns = new LinkedList<>();
+    private Queue<Player> playerTurns = new ConcurrentLinkedQueue<>();
 
 
     public Game(UUID gameID, Map<UUID, Player> players, Map<UUID, Player> guessedCorrectly, int maxRounds,
