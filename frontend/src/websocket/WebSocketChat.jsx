@@ -58,10 +58,10 @@ export function WebSocketChat(props) {
             if (serverResponse.eventID === 'CURRENT_DRAWER') {
                 setDrawerID(serverResponse.drawerID);
                 setDrawerName(serverResponse.message);
-            }
 
-            if (drawerID !== playerID) {
-                setCurrentWord("");
+                if (serverResponse.drawerID !== playerID) {
+                    setCurrentWord("");
+                }
             }
 
             messageFunc(serverResponse, "announcement");
