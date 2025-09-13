@@ -17,4 +17,8 @@ public interface GameMessagingService {
     void sendGameOver(Game game);
 
     public void sendPlayerJoined(Player drawer, Game game);
+
+    void sendCurrentDrawer(Player drawer, Game game);
+
+    void sendPlayerLeft(Player player, Game game);
 }
