@@ -1,5 +1,7 @@
 package com.drawit.demo.model;
 
+import com.drawit.demo.dto.Coordinates;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -15,6 +17,7 @@ public class Game {
     private Map<UUID, Player> players = new ConcurrentHashMap<>();
     private Map<UUID, Player> guessedCorrectly = new ConcurrentHashMap<>();
     private Queue<Player> playerTurns = new ConcurrentLinkedQueue<>();
+    private Queue<Coordinates> drawHistory = new ConcurrentLinkedQueue<>();
 
 
     public Game(UUID gameID, Map<UUID, Player> players, Map<UUID, Player> guessedCorrectly, int maxRounds,
@@ -92,6 +95,14 @@ public class Game {
 
     public void setPlayerTurns(Queue<Player> playerTurns) {
         this.playerTurns = playerTurns;
+    }
+
+    public Queue<Coordinates> getDrawHistory() {
+        return drawHistory;
+    }
+
+    public void setDrawHistory(Queue<Coordinates> drawHistory) {
+        this.drawHistory = drawHistory;
     }
 
     @Override
