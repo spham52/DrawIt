@@ -6,6 +6,7 @@ import com.drawit.demo.model.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,6 +19,7 @@ public class SessionService {
     private final ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<>();
     private final GameLogicService gameLogicService;
     private final GameSchedulerService gameSchedulerService;
+    private final ConcurrentHashMap<UUID, Set<UUID>> ready = new ConcurrentHashMap<>();
 
     @Autowired
     SessionService(GameService gameService, GameMessagingService messagingService, GameLogicService gameLogicService, GameSchedulerService gameSchedulerService) {
@@ -40,11 +42,7 @@ public class SessionService {
 
         gameService.addPlayer(player, gameID);
         Game game = gameService.getGame(gameID);
-
-        // if game has started and player has joined, give player the drawer's ID
-        if (game.isGameStarted()) {
-            messagingService.sendPlayerJoined(game.getDrawer(), game);
-        }
+        messagingService.sendPlayerJoined(player, game);
 
         Session session = new Session();
         session.setSessionID(uuid);
@@ -70,7 +68,7 @@ public class SessionService {
             case NO_OP:
                 break;
             case ADVANCE_TURN:
-                gameSchedulerService.rescheduleTask(game);
+                gameSchedulerService.advanceTurnNow(game);
                 break;
             case STOP_SCHEDULER:
                 gameSchedulerService.stopGame(game);

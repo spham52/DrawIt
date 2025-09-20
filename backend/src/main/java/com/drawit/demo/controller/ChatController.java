@@ -63,7 +63,7 @@ public class ChatController {
             gameMessagingService.sendCorrectGuessAnnouncement(player, game);
 
             if (GameRules.allPlayersGuessedCorrectly(game)) {
-                gameSchedulerService.rescheduleTask(game);
+                gameSchedulerService.advanceTurnNow(game);
             }
 
             return;

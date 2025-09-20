@@ -38,23 +38,18 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Game restartGame(Game oldGame) {
-        UUID newId = UUID.randomUUID();
-        Game newGame = new Game();
-        newGame.setGameID(newId);
+    public Game restartGame(Game game) {
+        game.getPlayerTurns().clear();
 
-        for (Player p : oldGame.getPlayers().values()) {
-            newGame.getPlayers().put(p.getId(), p);
-            newGame.getPlayerTurns().add(p);
+        for (Player p : game.getPlayers().values()) {
+            game.getPlayerTurns().add(p);
         }
+        game.setCurrRound(0);
+        game.setGameStarted(true);
+        game.setDrawer(null);
+        game.getGuessedCorrectly().clear();
 
-
-        newGame.setCurrRound(1);
-        newGame.setGameStarted(false);
-        newGame.setDrawer(null);
-
-        games.put(newId, newGame);
-        return newGame;
+        return game;
     }
 
     @Override

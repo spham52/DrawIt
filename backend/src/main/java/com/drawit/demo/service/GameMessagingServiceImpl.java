@@ -50,12 +50,15 @@ public class GameMessagingServiceImpl implements GameMessagingService {
     }
 
     // send to newly joined player, who the current drawer is
-    public void sendPlayerJoined(Player drawer, Game game) {
-        GameEventMessage gameEventMessage = new GameEventMessage(EventMessageType.PLAYER_JOINED, drawer.getUsername(),drawer.getId());
+    public void sendPlayerJoined(Player player, Game game) {
+        GameEventMessage gameEventMessage = new GameEventMessage(EventMessageType.PLAYER_JOINED, player.getUsername(),player.getId());
         messagingTemplate.convertAndSend("/topic/game/" + game.getGameID() + "/event", gameEventMessage);
+        sendCurrentDrawer(game);
     }
 
-    public void sendCurrentDrawer(Player drawer, Game game) {
+    public void sendCurrentDrawer(Game game) {
+        if (game.getDrawer() == null) return;
+        Player drawer = game.getDrawer();
         GameEventMessage gameEventMessage = new GameEventMessage(EventMessageType.CURRENT_DRAWER, drawer.getUsername(),
                 drawer.getId());
         messagingTemplate.convertAndSend("/topic/game/" + game.getGameID() + "/event", gameEventMessage);

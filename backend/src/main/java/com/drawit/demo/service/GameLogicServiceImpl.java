@@ -70,16 +70,30 @@ public class GameLogicServiceImpl implements GameLogicService {
 
     public void nextPlayer(Game game) {
         Player player = getNextPlayer(game);
-        System.out.println(game.getPlayers());
+
+        // queue is unexpectedly empty, rebuild queue from current players again
+        // otherwise if still empty, skip
+        if (player == null) {
+            if (game.getPlayers().isEmpty()) return;
+
+            for (Player p : game.getPlayers().values()) {
+                game.getPlayerTurns().add(p);
+            }
+            player = getNextPlayer(game);
+            if (player == null) return;
+        }
+
         WordEntry word = wordService.retrieveRandomWord();
         game.setDrawer(player);
         game.getGuessedCorrectly().clear();
+        game.getDrawHistory().clear();
+
 
         // send word to current drawer
         game.setCurrWord(word.getWord());
         System.out.println(word.getWord());
         gameMessagingService.sendCurrentWord(player, game);
-        gameMessagingService.sendCurrentDrawer(player, game);
+        gameMessagingService.sendCurrentDrawer(game);
     }
 
     public void handleCorrectGuess(Player player, Game game) {

@@ -6,7 +6,7 @@ import java.util.concurrent.ScheduledFuture;
 public class ScheduledTask {
 
     private final ScheduledExecutorService executor;
-    private final ScheduledFuture<?> future;
+    private volatile ScheduledFuture<?> future;
 
     public ScheduledTask(ScheduledExecutorService executor, ScheduledFuture<?> future) {
         this.executor = executor;
@@ -14,8 +14,10 @@ public class ScheduledTask {
     }
 
     public void cancel() {
-        future.cancel(false);
-        executor.shutdown();
+        if (future != null) {
+            future.cancel(true);
+            executor.shutdownNow();
+        }
     }
 
     public boolean isCancelled() {
@@ -32,5 +34,9 @@ public class ScheduledTask {
 
     public ScheduledFuture<?> getFuture() {
         return future;
+    }
+
+    public void setFuture(ScheduledFuture<?> future) {
+        this.future = future;
     }
 }
