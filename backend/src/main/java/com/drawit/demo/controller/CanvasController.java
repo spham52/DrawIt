@@ -44,7 +44,23 @@ public class CanvasController {
         if (game.getDrawer().getId() == player.getId()) {
             UUID gameID = game.getGameID();
             String url = "/topic/game/" + gameID + "/draw";
+            game.getDrawHistory().add(coords);
             messagingTemplate.convertAndSend(url, coords);
         }
+    }
+
+    @MessageMapping("/game/{gameID}/requestHistory")
+    public void sendHistory(@DestinationVariable String gameID,
+                            SimpMessageHeaderAccessor accessor) {
+        UUID gid = UUID.fromString(gameID);
+        Game game = gameService.getGame(gid);
+        if (game == null) return;
+
+        messagingTemplate.convertAndSendToUser(
+                accessor.getSessionId(),
+                "/queue/draw",
+                game.getDrawHistory(),
+                accessor.getMessageHeaders()
+        );
     }
 }
