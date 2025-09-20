@@ -4,6 +4,7 @@ import './canvasStyle.css'
 export default function DrawCanvas({stompClientRef, drawerID, playerID, gameID}) {
     const canvasRef = useRef(null);
     const subRef = useRef(null);
+    const histSubRef = useRef(null);
 
     const sendDrawEvent = (coords) => {
         if (!stompClientRef.current?.connected || !gameID) return;
@@ -28,6 +29,32 @@ export default function DrawCanvas({stompClientRef, drawerID, playerID, gameID})
     }
 
 
+    const subscribeHistory = (ctx) => {
+        histSubRef.current?.unsubscribe();
+        if (stompClientRef.current?.connected && gameID) {
+            histSubRef.current = stompClientRef.current.subscribe(
+                `/user/queue/draw`,
+                (data) => {
+                    const coords = JSON.parse(data.body);
+                    console.log(coords);
+                    for (let i = 0; i < coords.length; i++) {
+                        ctx.beginPath();
+                        ctx.moveTo(coords[i].prevX, coords[i].prevY);
+                        ctx.lineTo(coords[i].x, coords[i].y);
+                        ctx.stroke();
+                    }
+                }
+            );
+
+            stompClientRef.current.publish({
+                destination: `/app/game/${gameID}/requestHistory`,
+                body: "{}"
+            });
+        }
+    };
+
+
+
     useEffect(() => {
         let userDrawing = false;
         const canvas = canvasRef.current;
@@ -44,6 +71,7 @@ export default function DrawCanvas({stompClientRef, drawerID, playerID, gameID})
         if (stompClientRef.current?.connected) {
             subRef.current?.unsubscribe();
             subscribeToDrawEvent(ctx);
+            subscribeHistory(ctx);
         }
 
         const isDrawing = (event) => {
@@ -62,8 +90,6 @@ export default function DrawCanvas({stompClientRef, drawerID, playerID, gameID})
             const rect = canvas.getBoundingClientRect();
             const x = (event.clientX - rect.left) * dpr;
             const y = (event.clientY - rect.top) * dpr;
-            console.log("Player ID: " + playerID);
-            console.log("Drawer ID: " + drawerID);
             if (playerID === drawerID) {
                 // publish user's draw coords to websocket channel 'game/draw'
                 sendDrawEvent({
