@@ -35,8 +35,8 @@ export function WebSocketChat(props) {
             : {type: "announcement", message: convertAnnouncement(serverResponse)};
         setMessage((prevMessage) => {
             const newMessages = [...prevMessage, message];
-            return newMessages.length > 30
-                ? newMessages.slice(newMessages.length - 30)
+            return newMessages.length > 20
+                ? newMessages.slice(newMessages.length - 20)
                 : newMessages;
         });
     }
@@ -71,18 +71,20 @@ export function WebSocketChat(props) {
     useEffect(() => {
         console.log(props.name);
         const stompClient = new Client({
-            brokerURL: "ws://localhost:8080/websocket",
+            brokerURL: process.env.REACT_APP_BACKEND_WS_URL,
             debug: (msg) => console.log("[STOMP]", msg),
         });
 
         stompClient.onConnect = (frame) => {
             console.log(frame);
-            const sub = stompClient.subscribe('/topic/session', (data) => {
+            const sub = stompClient.subscribe('/user/queue/session', (data) => {
                 const serverResponse = JSON.parse(data.body);
                 console.log(serverResponse);
                 setPlayerID(serverResponse.playerID);
                 setGameID(serverResponse.gameID);
                 setSessionID(serverResponse.sessionID);
+                setDrawerID(serverResponse.drawerID);
+                setDrawerName(serverResponse.drawerName)
 
                 subscribeToGame(serverResponse.gameID, serverResponse.playerID);
                 subscribeToGameEvent(serverResponse.gameID, serverResponse.playerID);
