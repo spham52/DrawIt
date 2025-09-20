@@ -45,4 +45,15 @@ public class Coordinates {
     public void setPrevY(int prevY) {
         this.prevY = prevY;
     }
+
+    @Override
+    public String toString() {
+        return "Coordinates{" +
+                "x=" + x +
+                ", y=" + y +
+                ", prevX=" + prevX +
+                ", prevY=" + prevY +
+                '}';
+    }
 }
+
