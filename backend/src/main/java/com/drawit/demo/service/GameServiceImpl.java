@@ -47,6 +47,7 @@ public class GameServiceImpl implements GameService {
         game.setGameStarted(false);
         game.setDrawer(null);
         game.getGuessedCorrectly().clear();
+        game.getDrawHistory().clear();
 
         return game;
     }
