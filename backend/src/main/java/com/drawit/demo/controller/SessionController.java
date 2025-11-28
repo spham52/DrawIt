@@ -49,6 +49,8 @@ public class SessionController {
 
         System.out.println(game);
 
+        gameMessagingService.sendPlayerJoined(player, game);
+
         // send session details privately
         ServerMessage sessionDto = ServerMessage.from(session, player, game);
 

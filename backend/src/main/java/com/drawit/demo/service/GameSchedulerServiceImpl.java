@@ -27,18 +27,19 @@ public class GameSchedulerServiceImpl implements GameSchedulerService {
     public void createTask(UUID gameID) {
         Game game = gameService.getGame(gameID);
 
-        if (game == null || game.getPlayers().size() < 2) return;
-
-        if (!gameScheduler.containsKey(gameID)) {
-            synchronized (gameScheduler) {
-                ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
-                ScheduledTask task = new ScheduledTask(exec, null);
-                gameScheduler.put(gameID, task);
-
-                task.setFuture(exec.schedule(() -> startOrAdvanceTurn(game, task),
-                        2, TimeUnit.SECONDS));
+            if (game == null || game.getPlayers().size() < 2 || gameScheduler.containsKey(gameID)) {
+                return;
             }
-        }
+
+            ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+            ScheduledTask task = new ScheduledTask(exec, null);
+            gameScheduler.put(gameID, task);
+
+            ScheduledFuture<?> future = exec.schedule(() -> {
+                startOrAdvanceTurn(game, task);
+            }, 2, TimeUnit.SECONDS);
+
+            task.setFuture(future);
     }
 
     public void stopGame(Game game) {
@@ -51,6 +52,8 @@ public class GameSchedulerServiceImpl implements GameSchedulerService {
         if (game.getPlayers().size() >= 2) {
             Game newGame = gameService.restartGame(game);
             createTask(newGame.getGameID());
+        } else {
+            gameService.restartGame(game);
         }
     }
 
@@ -61,6 +64,7 @@ public class GameSchedulerServiceImpl implements GameSchedulerService {
             stopGame(game);
             return;
         }
+
         gameLogicService.nextPlayer(game);
 
         if (!game.isGameStarted() && game.getDrawer() != null) {
@@ -77,7 +81,10 @@ public class GameSchedulerServiceImpl implements GameSchedulerService {
     public void advanceTurnNow(Game game) {
         ScheduledTask task = gameScheduler.get(game.getGameID());
         if (task == null) return;
+
+        synchronized (task) {
         if (task.getFuture() != null) task.getFuture().cancel(true);
         task.getExecutor().execute(() -> startOrAdvanceTurn(game, task));
+        }
     }
 }

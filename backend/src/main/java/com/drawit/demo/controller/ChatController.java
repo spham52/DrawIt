@@ -54,16 +54,20 @@ public class ChatController {
         Game game = gameService.getGame(gameID);
         Player player = game.getPlayers().get(playerID);
 
-        // game hasn't started or player isn't allowed to message
         if (!GameRules.canPlayerSendMessage(player, game)) return;
 
-        // if message is correct guess
         if (GameRules.isCorrectGuess(chatMessage, game)) {
             gameLogicService.handleCorrectGuess(player, game);
             gameMessagingService.sendCorrectGuessAnnouncement(player, game);
 
-            if (GameRules.allPlayersGuessedCorrectly(game)) {
-                gameSchedulerService.advanceTurnNow(game);
+            if (GameRules.isCorrectGuess(chatMessage, game)) {
+                gameLogicService.handleCorrectGuess(player, game);
+                gameMessagingService.sendCorrectGuessAnnouncement(player, game);
+
+                if (GameRules.allPlayersGuessedCorrectly(game)) {
+                    gameSchedulerService.advanceTurnNow(game);
+                }
+                return;
             }
 
             return;

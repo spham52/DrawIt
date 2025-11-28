@@ -28,23 +28,20 @@ public class GameLogicServiceImpl implements GameLogicService {
 
     public void incrementRound(Game game) {
         if (game.getCurrRound() == 0) {
-
-            if (game.getPlayerTurns().isEmpty()) {
-                for (Player p : game.getPlayers().values()) {
-                    game.getPlayerTurns().add(p);
-                }
+            game.getPlayerTurns().clear();
+            for (Player p : game.getPlayers().values()) {
+                game.getPlayerTurns().add(p);
             }
             game.setCurrRound(1);
             gameMessagingService.sendRoundStart(game);
+            return;
         }
 
         if (GameRules.isRoundOver(game)) {
             Map<UUID, Player> players = game.getPlayers();
-
             for (Player p : players.values()) {
                 game.getPlayerTurns().add(p);
             }
-
             game.setCurrRound(game.getCurrRound() + 1);
             gameMessagingService.sendRoundStart(game);
         }

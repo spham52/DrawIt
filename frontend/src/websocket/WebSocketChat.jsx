@@ -43,14 +43,16 @@ export function WebSocketChat(props) {
 
     const subscribeToGameEvent = (gameID, playerID) => {
         if (!stompClientRef.current) return;
+
         stompClientRef.current.subscribe(`/topic/game/${gameID}/event/player/${playerID}`, (data) => {
             const serverResponse = JSON.parse(data.body);
-            messageFunc(serverResponse, "announcement");
 
             if (serverResponse.eventID === 'CURRENT_WORD') {
                 setCurrentWord(serverResponse.message);
+                messageFunc(serverResponse, "announcement");
             }
         })
+
         stompClientRef.current.subscribe(`/topic/game/${gameID}/event`, (data) => {
             const serverResponse = JSON.parse(data.body);
             console.log(serverResponse);
@@ -62,6 +64,7 @@ export function WebSocketChat(props) {
                 if (serverResponse.drawerID !== playerID) {
                     setCurrentWord("");
                 }
+                return;
             }
 
             messageFunc(serverResponse, "announcement");
@@ -71,7 +74,7 @@ export function WebSocketChat(props) {
     useEffect(() => {
         console.log(props.name);
         const stompClient = new Client({
-            brokerURL: process.env.REACT_APP_BACKEND_WS_URL,
+            brokerURL: "ws://localhost:8080/websocket",
             debug: (msg) => console.log("[STOMP]", msg),
         });
 

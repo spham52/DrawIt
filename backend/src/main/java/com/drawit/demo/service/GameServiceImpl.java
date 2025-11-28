@@ -29,7 +29,6 @@ public class GameServiceImpl implements GameService {
     public void addPlayer(Player player, UUID gameID) {
         Game game = getGame(gameID);
         game.getPlayers().put(player.getId(), player);
-        game.getPlayerTurns().add(player);
     }
 
     @Override
@@ -45,7 +44,7 @@ public class GameServiceImpl implements GameService {
             game.getPlayerTurns().add(p);
         }
         game.setCurrRound(0);
-        game.setGameStarted(true);
+        game.setGameStarted(false);
         game.setDrawer(null);
         game.getGuessedCorrectly().clear();
 
